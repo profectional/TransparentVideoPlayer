@@ -1,0 +1,10 @@
+run the .exes to install stuffs make sure you choosed make python system path or something when installing the python .exe, if not the python codes below wont work and you have to look up tutorial on youtube on how to add python to path
+
+right click open terminal in this folder then type:
+python setup.py
+
+to run the program use the same step as above but for:
+python start.py
+
+click on the running program and Esc to exit
+, r to replay and s to skip you can slap your own vids here in this folder
