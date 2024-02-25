@@ -6,7 +6,6 @@ from PyQt5.QtMultimediaWidgets import QVideoWidget
 from PyQt5.QtCore import QUrl, Qt, QUrl
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtCore import QSettings
-from moviepy.editor import VideoFileClip
 
 class VideoPlayer(QWidget):
     VOLUME_MULTIPLIER = 1.1
@@ -70,28 +69,7 @@ class VideoPlayer(QWidget):
         elif event.key() == Qt.Key_Down:
             o = self.windowOpacity()
             self.setWindowOpacity(o-0.05)
-        # Currently not working
-        elif event.key() == Qt.Key_W:
-            # Get the URL of the current media item
-            url = self.playlist.currentMedia().canonicalUrl().toString()
-
-            # Load the video
-            clip = VideoFileClip(url)
-
-            # Increase the volume by 10%
-            clip = clip.volumex(self.VOLUME_MULTIPLIER)
-
-            # Write the result to a file
-            new_url = url.replace(".mp4", "_louder.mp4")
-            clip.write_videofile(new_url)
-
-            # Load the new video into the media player
-            self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(new_url)))
-
-            # Write the change to a text file
-            with open("changes.txt", "a") as f:
-                f.write(f"Increased volume of {url} by 10%\n")
-            
+        
         elif event.key() == Qt.Key_E:
             volume = self.mediaPlayer.volume() * self.VOLUME_MULTIPLIER
             volume -= 10
