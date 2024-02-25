@@ -6,9 +6,12 @@ from PyQt5.QtMultimediaWidgets import QVideoWidget
 from PyQt5.QtCore import QUrl, Qt, QUrl
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtCore import QSettings
+from moviepy.editor import VideoFileClip
+from urllib.parse import unquote, urlparse
+import re
 
 class VideoPlayer(QWidget):
-    VOLUME_MULTIPLIER = 1.1
+    VOLUME_MULTIPLIER = 2 
     def __init__(self):
         super().__init__()
         self.setWindowTitle('Video Player')
@@ -51,7 +54,6 @@ class VideoPlayer(QWidget):
 
         # Set the window opacity to 50%
         self.setWindowOpacity(0.5)
-
     # Override keyPressEvent
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
@@ -69,7 +71,39 @@ class VideoPlayer(QWidget):
         elif event.key() == Qt.Key_Down:
             o = self.windowOpacity()
             self.setWindowOpacity(o-0.05)
-        
+        # Currently not working
+        elif event.key() == Qt.Key_W:
+            # Get the URL of the current media item
+            url = self.playlist.currentMedia().canonicalUrl().toString()
+
+            # Convert the file URL to a normal file path
+            path = unquote(urlparse(url).path)
+
+            # Convert the file URL to a normal file path
+            path = unquote(urlparse(url).path)
+
+            # Remove leading slash if on Windows
+            if os.name == 'nt' and path.startswith('/'):
+                path = path[1:]
+
+            # Load the video
+            clip = VideoFileClip(path)
+
+            # Increase the volume by 10%
+            clip = clip.volumex(self.VOLUME_MULTIPLIER)
+
+            # Write the result to a file
+            new_path = path.replace(".mp4", "_louder.mp4")
+            clip.write_videofile(new_path)
+
+            # Load the new video into the media player
+            self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(new_path)))
+            self.playlist.setCurrentIndex(0)
+            self.mediaPlayer.play()
+            # Write the change to a text file
+            with open("changes.txt", "a", encoding="utf-8") as f:
+                f.write(f"Increased volume of {url} by 10%\n")
+            
         elif event.key() == Qt.Key_E:
             volume = self.mediaPlayer.volume() * self.VOLUME_MULTIPLIER
             volume -= 10
