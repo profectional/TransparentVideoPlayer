@@ -16,7 +16,7 @@ pip install PyQt5
 pip install moviepy
 
 Running the Program
-To run the program, open a terminal in the directory/folder containing the main.py file and run the following command:
+To run the program, open a terminal in the directory/folder containing the start.py file and run the following command:
 
 python start.py
 
