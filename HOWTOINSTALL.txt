@@ -1,10 +1,36 @@
-run the .exes to install stuffs make sure you choosed make python system path or something when installing the python .exe, if not the python codes below wont work and you have to look up tutorial on youtube on how to add python to path
+# Video Player
 
-right click open terminal in this folder then type:
-python test_setup.py
+This is a video player application built with PyQt5 and Python. It plays all .mp4 files in the same directory with 50% opacity on top of your other windows without interuption.
 
-to run the program use the same step as above but for:
+## Installation
+
+1. Ensure you have Python installed on your system. If not, download and install it from the official Python website. During the installation, make sure to select the option to add Python to your system path.
+
+2.Open a terminal and run the following commands:
+
+python setup.py
+
+or:
+
+pip install PyQt5
+pip install moviepy
+
+Running the Program
+To run the program, open a terminal in the directory/folder containing the main.py file and run the following command:
+
 python start.py
 
-click on the running program and Esc to exit
-, r to replay and s to skip you can slap your own vids here in this folder
+Usage
+Once the program is running, you can interact with it using the following keyboard commands:
+
+Esc to exit the program
+r to replay the current video
+s to skip to the next video
+p to go to the previous video
+Up to increase the window opacity
+Down to decrease the window opacity
+w to make a new file and increase the volume permanently (renamed as x_louder)
+e to decrease the volume (this setting is saved)
+Space to pause/play the video
+Adding Videos
+You can add your own videos to the program by placing them in the same directory as the main.py file. The videos should be in .mp4 format.
