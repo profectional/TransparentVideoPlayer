@@ -5,7 +5,8 @@ import subprocess
 def install_packages():
     packages = [
         'PyQt5',
-        'moviepy'
+        'moviepy',
+        'yt-dlp'
     ]
     subprocess.check_call([sys.executable, '-m', 'pip', 'install', *packages])
 
