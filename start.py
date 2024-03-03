@@ -15,6 +15,25 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtWidgets import QApplication
 import pyperclip
 from yt_dlp import YoutubeDL
+import tkinter as tk
+from datetime import timedelta
+import threading
+import time
+import glob
+import tkinter as tk
+from datetime import timedelta
+import threading
+import time
+import glob
+from yt_dlp import YoutubeDL
+import re
+
+ydl_opts = {
+    'writesubtitles': True,  # Write subtitle file
+    'writeautomaticsub': True,  # Write automatic subtitle file (YouTube only)
+    'subtitleslangs': ['en'],  # Languages of subtitles to download
+    'skip_download': True,  # Skip downloading the video
+}
 
 '''
 # Specify the path to the FFmpeg binary
@@ -53,39 +72,69 @@ else:
 '''
 
 class VideoPlayer(QWidget):
+    # This is a constant that is used to adjust the volume level of the media player.
     VOLUME_MULTIPLIER = 2 
+
     def __init__(self):
         super().__init__()
+
+        # Set the window title to 'Video Player'.
         self.setWindowTitle('Video Player')
+
+        # Set the window flags to always stay on top and ignore user input.
         self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.WindowTransparentForInput)
+
+        # Create a QSettings object to store application settings.
         self.settings = QSettings("YourOrganization", "YourApplication")
+
+        # Create a QMediaPlayer object with a video surface.
         self.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface)
+
+        # Create a QVideoWidget object to display the video.
         self.videoWidget = QVideoWidget()
 
-        # Create a playlist
+        # Create a QMediaPlaylist object to manage a playlist of media content.
         self.playlist = QMediaPlaylist()
+
+        # Set the playback mode of the playlist to loop.
         self.playlist.setPlaybackMode(QMediaPlaylist.Loop)
-        # Add all .mp4 files in the same directory to the playlist
+
+        # Get the directory of the current file.
         directory = os.path.dirname(os.path.realpath(__file__))
+
+        # Find all .mp4 files in the directory and add them to the playlist.
         mp4_files = [file for file in os.listdir(directory) if file.endswith(".mp4")]
         for i, file in enumerate(mp4_files, start=1):
-          print(f"({i}) {file}")
+            print(f"({i}) {file}")
         for file in os.listdir(directory):
             if file.endswith(".mp4"):
                 url = QUrl.fromLocalFile(os.path.join(directory, file))
                 self.playlist.addMedia(QMediaContent(url))
+
         print("Press r to replay the video, s to skip to the next video, p to go to the previous video, up to increase the window opacity, down to decrease the window opacity, w to increase the volume, e to decrease the volume, and space to pause/play the video")
-        # Set the playlist for the media player
+
+        # Set the playlist for the media player.
         self.mediaPlayer.setPlaylist(self.playlist)
 
+        # Set the video output of the media player to the video widget.
         self.mediaPlayer.setVideoOutput(self.videoWidget)
+
+        # Start playing the media content.
         self.mediaPlayer.play()
 
+        # Create a QVBoxLayout object to manage the layout of the widget.
         self.layout = QVBoxLayout()
+
+        # Add the video widget to the layout.
         self.layout.addWidget(self.videoWidget)
+
+        # Set the layout of the widget.
         self.setLayout(self.layout)
 
+        # Get the volume setting from the QSettings object.
         volume = self.settings.value("volume", 50, type=int)
+
+        # Set the volume of the media player.
         self.mediaPlayer.setVolume(int(volume / self.VOLUME_MULTIPLIER))  # Convert to int
 
         # Remove margins
@@ -169,12 +218,12 @@ class YTVideoPlayer(QWidget):
     VOLUME_MULTIPLIER = 2 
     def __init__(self, video_url):
         super().__init__()
+        time.sleep(20)
         self.setWindowTitle('YouTube Video Player')
         self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.WindowTransparentForInput)
         self.settings = QSettings("YourOrganization", "YourApplication")
         self.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface)
         self.videoWidget = QVideoWidget()
-
         # Create a playlist
         self.playlist = QMediaPlaylist()
         self.playlist.setPlaybackMode(QMediaPlaylist.Loop)
@@ -209,11 +258,32 @@ class YTVideoPlayer(QWidget):
         # Set the window opacity to 50%
         self.setWindowOpacity(0.5)
 
+
+    def get_position(self):
+        return self.mediaPlayer.position()
+
+    def set_position(self, position):
+        self.mediaPlayer.setPosition(position)
+    
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
+            pid = os.getpid()
+            os.kill(pid, 9)
             QApplication.quit()
         elif event.key() == Qt.Key_R:
             self.playlist.setCurrentIndex(0)
+            self.mediaPlayer.play()
+        elif event.key() == Qt.Key_C:
+            self.subtitle_loaded = threading.Event()
+            self.mediaPlayer.pause()
+
+            def run_app():
+                self.app = self.subtitle_reader(choice)
+
+            # Create a new thread for the Tkinter app
+            app_thread = threading.Thread(target=run_app)
+            app_thread.start()
+            self.subtitle_loaded.wait()
             self.mediaPlayer.play()
         elif event.key() == Qt.Key_S:
             self.playlist.next()
@@ -228,12 +298,148 @@ class YTVideoPlayer(QWidget):
         # Currently not working
         elif event.key() == Qt.Key_U:
              self.playlist.shuffle()
-
-        elif event.key() == Qt.Key_Space:  # Check if the pressed key is space
+        elif event.key() == Qt.Key_Right:
+            new_position = self.get_position() + 5000
+            if new_position <= self.mediaPlayer.duration():
+                self.set_position(new_position)
+        elif event.key() == Qt.Key_Left:
+            new_position = max(self.get_position() - 5000, 0)
+            if new_position >= 0:
+                self.set_position(new_position)
+        elif event.key() == Qt.Key_Space:
             if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
-                self.mediaPlayer.pause()  # Pause the video
+                self.mediaPlayer.pause()
             else:
                 self.mediaPlayer.play()
+
+
+    def subtitle_reader(self, choice):
+        ydl_opts = {
+            'writesubtitles': True,  # Write subtitle file
+            'writeautomaticsub': True,  # Write automatic subtitle file (YouTube only)
+            'subtitleslangs': ['en'],  # Languages of subtitles to download
+            'skip_download': True,  # Skip downloading the video
+        }
+
+        def get_sub(choice):
+            with YoutubeDL(ydl_opts) as ydl:
+                info_dict = ydl.extract_info(choice, download=True)
+                video_title = info_dict.get('title', None)
+                return video_title
+
+        def detect_format(subtitle_file):
+            with open(subtitle_file, 'r') as file:
+                first_line = file.readline().strip()
+            print(f"First line of the file: {first_line}")  # Print the first line of the file
+            format = 'WEBVTT' if first_line.startswith('WEBVTT') else 'SRT'
+            print(f"Detected format: {format}")  # Print the detected format
+            return format
+
+        def load_subtitles(subtitle_file):
+            format = detect_format(subtitle_file)
+            if format == 'WEBVTT':
+                return load_webvtt_subtitles(subtitle_file)
+            else:
+                return load_srt_subtitles(subtitle_file)
+
+        def load_srt_subtitles(subtitle_file):
+            print("Loading SRT subtitles...")
+            with open(subtitle_file, 'r') as file:
+                data = file.read().split('\n\n')[1:]  # Skip the first line
+                subtitles = [(parse_time(sub.split('\n')[0].split(' --> ')[0]), '\n'.join(sub.split('\n')[1:])) for sub in data if sub]
+            return subtitles
+
+        def load_webvtt_subtitles(subtitle_file):
+            print("Loading WEBVTT subtitles...")
+
+            # Open the subtitle file in read mode.
+            with open(subtitle_file, 'r') as file:
+                # Read the entire file, split it into chunks by double newlines, and skip the first two chunks.
+                data = file.read().split('\n\n')[2:]
+
+                # Initialize an empty list to store the subtitles.
+                subtitles = []
+
+                # Iterate over each chunk in the data.
+                for sub in data:
+                    # Split the chunk into lines, ignoring lines that start with 'align:' or 'position:'.
+                    lines = [line for line in sub.split('\n') if not line.startswith(('align:', 'position:'))]
+
+                    # If there are at least two lines and the first line contains '-->', it's a subtitle line.
+                    if len(lines) >= 2 and '-->' in lines[0]:
+                        # Parse the timestamp from the first line.
+                        time = parse_time(lines[0].split(' --> ')[0])
+
+                        # Join the remaining lines into a single string, ignoring lines that start with '<'.
+                        text = '\n'.join(line for line in lines[1:] if not line.startswith('<'))
+
+                        # Remove nested timestamps from the text.
+                        text = re.sub(r'<\d\d:\d\d:\d\d.\d\d\d>', '', text)
+
+                        # Remove <c> tags from the text.
+                        text = re.sub(r'<c>', '', text)
+
+                        # Remove </c> tags from the text.
+                        text = re.sub(r'</c>', '', text)
+
+                        # Append the timestamp and text as a tuple to the subtitles list.
+                        subtitles.append((time, text))
+
+            # Return the list of subtitles.
+            return subtitles
+
+        def parse_time(time_str):
+            h, m, s = map(float, time_str.split(':'))
+            return timedelta(hours=h, minutes=m, seconds=s).total_seconds() * 1000
+
+        def display_next_subtitle():
+            if subtitles:
+                time, text = subtitles.pop(0)
+                for _ in range(1):  # Display 2 subtitles at once
+                    if subtitles:
+                        _, extra_text = subtitles.pop(0)
+                        text += '\n' + extra_text
+                label.config(text=text)
+                if subtitles:  # Check if there are more subtitles
+                    next_time, _ = subtitles[0]
+                    delay = round(next_time - time)  # Round the delay to the nearest millisecond
+                else:
+                    delay = 0
+                root.after(int(delay), display_next_subtitle)
+
+        root = tk.Tk()
+        root.overrideredirect(True)
+        # Get screen width and height + window
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        window_width = root.winfo_reqwidth()
+        window_height = root.winfo_reqheight()
+
+        # Calculate offsets
+        OFFSET_X = (screen_width - window_width) // 2
+        OFFSET_Y = screen_height - window_height
+
+        # Position the window
+        root.geometry(f'+{OFFSET_X}+{OFFSET_Y}')
+        root.lift()
+        root.wm_attributes('-topmost', True)
+        root.wm_attributes('-disabled', True)
+        SACRIFICIAL_COLOR = 'white'  # or any other color that you won't use in your window
+
+        # Set the sacrificial color as the window background and the transparent color
+        root.config(bg=SACRIFICIAL_COLOR)
+        root.wm_attributes('-transparentcolor', SACRIFICIAL_COLOR)
+
+        label = tk.Label(root, bg=SACRIFICIAL_COLOR)
+        label.config(fg='#39FF14')
+        label.config(font=('Arial', 20))
+        label.pack()
+        sub_name = get_sub(choice)
+        subtitle_file = glob.glob(sub_name + '*.vtt')[0]
+        subtitles = load_subtitles(subtitle_file)
+        self.subtitle_loaded.set()
+        display_next_subtitle()
+        root.mainloop()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
@@ -243,11 +449,9 @@ if __name__ == '__main__':
 
     if choice == '1':
         # Run the video player
-        player = VideoPlayer()
-        player.show()
+        player1 = VideoPlayer()
+        player1.show()
     else:
-        # If the user input is anything other than '1', treat it as a YouTube video URL
-        player = YTVideoPlayer(choice)
-        player.show()
+        player2 = YTVideoPlayer(choice)
 
     sys.exit(app.exec_())
