@@ -13,5 +13,5 @@ jeśli używasz Linuksa, musisz zainstalować własne kodeki
 
 uruchom program:
 ```
-python main.py
+python start.py
 ```
