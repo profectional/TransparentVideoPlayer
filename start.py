@@ -11,20 +11,15 @@ from urllib.parse import unquote, urlparse
 import re
 import subprocess
 from PyQt5.QtCore import QUrl
-from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtWidgets import QApplication
-import pyperclip
 from yt_dlp import YoutubeDL
 import tkinter as tk
 from datetime import timedelta
 import threading
-import time
 import glob
 import tkinter as tk
-from datetime import timedelta
 import threading
 import time
-import glob
 from yt_dlp import YoutubeDL
 import re
 
