@@ -16,10 +16,13 @@ from yt_dlp import YoutubeDL
 import tkinter as tk
 from datetime import timedelta
 import threading
+import time
 import glob
 import tkinter as tk
+from datetime import timedelta
 import threading
 import time
+import glob
 from yt_dlp import YoutubeDL
 import re
 
@@ -141,6 +144,11 @@ class VideoPlayer(QWidget):
         # Set the window opacity to 50%
         self.setWindowOpacity(0.5)
 
+    def get_position(self):
+        return self.mediaPlayer.position()
+    def set_position(self, position):
+        self.mediaPlayer.setPosition(position)
+        
     # Override keyPressEvent
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
@@ -191,9 +199,15 @@ class VideoPlayer(QWidget):
             with open("changes.txt", "a", encoding="utf-8") as f:
                 f.write(f"Increased volume of {url} by 10%\n")
             
-        elif event.key() == Qt.Key_E:
+        elif event.key() == Qt.Key_Z:
             volume = self.mediaPlayer.volume() * self.VOLUME_MULTIPLIER
             volume -= 10
+            self.mediaPlayer.setVolume(min(volume, 100))
+            self.settings.setValue("volume", volume)
+
+        elif event.key() == Qt.Key_X:
+            volume = self.mediaPlayer.volume() * self.VOLUME_MULTIPLIER
+            volume += 10
             self.mediaPlayer.setVolume(min(volume, 100))
             self.settings.setValue("volume", volume)
 
@@ -202,7 +216,14 @@ class VideoPlayer(QWidget):
                 f.write(f"Decreased volume of {url} by 10%\n")
         elif event.key() == Qt.Key_U:
              self.playlist.shuffle()
-
+        elif event.key() == Qt.Key_Right:
+            new_position = self.get_position() + 5000
+            if new_position <= self.mediaPlayer.duration():
+                self.set_position(new_position)
+        elif event.key() == Qt.Key_Left:
+            new_position = max(self.get_position() - 5000, 0)
+            if new_position >= 0:
+                self.set_position(new_position)
         elif event.key() == Qt.Key_Space:  # Check if the pressed key is space
             if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
                 self.mediaPlayer.pause()  # Pause the video
@@ -213,7 +234,6 @@ class YTVideoPlayer(QWidget):
     VOLUME_MULTIPLIER = 2 
     def __init__(self, video_url):
         super().__init__()
-        time.sleep(20)
         self.setWindowTitle('YouTube Video Player')
         self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.WindowTransparentForInput)
         self.settings = QSettings("YourOrganization", "YourApplication")
@@ -230,7 +250,7 @@ class YTVideoPlayer(QWidget):
             video_url = info_dict.get('url', None)
             self.playlist.addMedia(QMediaContent(QUrl(video_url)))
 
-        print("Press r to replay the video, s to skip to the next video, p to go to the previous video, up to increase the window opacity, down to decrease the window opacity, w to increase the volume, e to decrease the volume, and space to pause/play the video")
+        print("Press r to replay the video, s to skip to the next video, p to go to the previous video, up_arrow/down to increase/decrease the window opacity, z/x to lower/incr volume, w to make a new clone file then increase the volume PERMARNETLY for that file, and space to pause/play the video")
         # Set the playlist for the media player
         self.mediaPlayer.setPlaylist(self.playlist)
 
@@ -280,6 +300,19 @@ class YTVideoPlayer(QWidget):
             app_thread.start()
             self.subtitle_loaded.wait()
             self.mediaPlayer.play()
+
+        elif event.key() == Qt.Key_Z:
+            volume = self.mediaPlayer.volume() * self.VOLUME_MULTIPLIER
+            volume -= 10
+            self.mediaPlayer.setVolume(min(volume, 100))
+            self.settings.setValue("volume", volume)
+
+        elif event.key() == Qt.Key_X:
+            volume = self.mediaPlayer.volume() * self.VOLUME_MULTIPLIER
+            volume += 10
+            self.mediaPlayer.setVolume(min(volume, 100))
+            self.settings.setValue("volume", volume)
+
         elif event.key() == Qt.Key_S:
             self.playlist.next()
         elif event.key() == Qt.Key_P:
