@@ -109,7 +109,7 @@ class VideoPlayer(QWidget):
                 url = QUrl.fromLocalFile(os.path.join(directory, file))
                 self.playlist.addMedia(QMediaContent(url))
 
-        print("Press r to replay the video, s to skip to the next video, p to go to the previous video, up to increase the window opacity, down to decrease the window opacity, w to increase the volume, e to decrease the volume, and space to pause/play the video")
+        print("Press r to replay the video, s to skip to the next video, p to go to the previous video, up to increase the window opacity, down to decrease the window opacity, w to increase the volume, e to decrease the volume, u to shuffle, and space to pause/play the video")
 
         # Set the playlist for the media player.
         self.mediaPlayer.setPlaylist(self.playlist)
