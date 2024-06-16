@@ -3,28 +3,19 @@ import os
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer, QMediaPlaylist
 from PyQt5.QtMultimediaWidgets import QVideoWidget
-from PyQt5.QtCore import QUrl, Qt, QUrl
+from PyQt5.QtCore import QUrl, Qt, QSettings
 from PyQt5.QtGui import QKeySequence
-from PyQt5.QtCore import QSettings
 from moviepy.editor import VideoFileClip
 from urllib.parse import unquote, urlparse
 import re
 import subprocess
-from PyQt5.QtCore import QUrl
-from PyQt5.QtWidgets import QApplication
 from yt_dlp import YoutubeDL
 import tkinter as tk
 from datetime import timedelta
 import threading
-import time
 import glob
-import tkinter as tk
-from datetime import timedelta
-import threading
 import time
-import glob
-from yt_dlp import YoutubeDL
-import re
+from tkinter import simpledialog as sd
 
 ydl_opts = {
     'writesubtitles': True,  # Write subtitle file
@@ -98,16 +89,26 @@ class VideoPlayer(QWidget):
         self.playlist.setPlaybackMode(QMediaPlaylist.Loop)
 
         # Get the directory of the current file.
-        directory = os.path.dirname(os.path.realpath(__file__))
+        static_directory = os.path.dirname(os.path.realpath(__file__))
 
-        # Find all .mp4 files in the directory and add them to the playlist.
-        mp4_files = [file for file in os.listdir(directory) if file.endswith(".mp4")]
-        for i, file in enumerate(mp4_files, start=1):
-            print(f"({i}) {file}")
-        for file in os.listdir(directory):
-            if file.endswith(".mp4"):
-                url = QUrl.fromLocalFile(os.path.join(directory, file))
-                self.playlist.addMedia(QMediaContent(url))
+        root = tk.Tk()
+        root.withdraw()
+
+        settings = QSettings("anon", "transparent_video_player")
+        directory = settings.value("directory")
+        if directory is None:
+            directory = sd.askstring("Input", "Enter the directory for your music ex: C:/Users/username/Music:")
+            settings.setValue("directory", directory)
+        file_toltal = 0
+        # Find all .mp4 files in the system and add them to the playlist.
+        for root, dirs, files in os.walk(directory):
+            for file in files:
+                if file.endswith(".mp4") or file.endswith(".webp"):
+                    full_path = os.path.join(root, file)
+                    file_toltal += 1
+                    print(f"Adding {file_toltal}{full_path} to playlist")
+                    url = QUrl.fromLocalFile(full_path)
+                    self.playlist.addMedia(QMediaContent(url))
 
         print("Press r to replay the video, s to skip to the next video, p to go to the previous video, up to increase the window opacity, down to decrease the window opacity, w to increase the volume, e to decrease the volume, u to shuffle, and space to pause/play the video")
 
@@ -166,7 +167,7 @@ class VideoPlayer(QWidget):
         elif event.key() == Qt.Key_Down:
             o = self.windowOpacity()
             self.setWindowOpacity(o-0.05)
-        # Currently not working
+
         elif event.key() == Qt.Key_W:
             # Get the URL of the current media item
             url = self.playlist.currentMedia().canonicalUrl().toString()
@@ -224,6 +225,44 @@ class VideoPlayer(QWidget):
             new_position = max(self.get_position() - 5000, 0)
             if new_position >= 0:
                 self.set_position(new_position)
+
+        elif event.key() == Qt.Key_1:
+            video_length = self.mediaPlayer.duration()
+            new_position = video_length * 0.1
+            self.set_position(int(round(new_position)))
+        elif event.key() == Qt.Key_2:
+            video_length = self.mediaPlayer.duration()
+            new_position = video_length * 0.2
+            self.set_position(int(round(new_position)))
+        elif event.key() == Qt.Key_3:
+            video_length = self.mediaPlayer.duration()
+            new_position = video_length * 0.3
+            self.set_position(int(round(new_position)))
+        elif event.key() == Qt.Key_4:
+            video_length = self.mediaPlayer.duration()
+            new_position = video_length * 0.4
+            self.set_position(int(round(new_position)))
+        elif event.key() == Qt.Key_5:
+            video_length = self.mediaPlayer.duration()
+            new_position = video_length * 0.5
+            self.set_position(int(round(new_position)))
+        elif event.key() == Qt.Key_6:
+            video_length = self.mediaPlayer.duration()
+            new_position = video_length * 0.6
+            self.set_position(int(round(new_position)))
+        elif event.key() == Qt.Key_7:
+            video_length = self.mediaPlayer.duration()
+            new_position = video_length * 0.7
+            self.set_position(int(round(new_position)))
+        elif event.key() == Qt.Key_8:
+            video_length = self.mediaPlayer.duration()
+            new_position = video_length * 0.8
+            self.set_position(int(round(new_position)))
+        elif event.key() == Qt.Key_9:
+            video_length = self.mediaPlayer.duration()
+            new_position = video_length * 0.9
+            self.set_position(int(round(new_position)))
+
         elif event.key() == Qt.Key_Space:  # Check if the pressed key is space
             if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
                 self.mediaPlayer.pause()  # Pause the video
@@ -285,11 +324,14 @@ class YTVideoPlayer(QWidget):
             pid = os.getpid()
             os.kill(pid, 9)
             QApplication.quit()
-        elif event.key() == Qt.Key_R:
-            self.playlist.setCurrentIndex(0)
-            self.mediaPlayer.play()
+        elif event.key() == Qt.Key_T:
+            with open("YTplaylist.txt", "w", encoding="utf-8") as f:
+                link = self.playlist.currentMedia().canonicalUrl().toString()
+                f.write(f"{link}\n")
+                print(f.read())
         elif event.key() == Qt.Key_C:
             self.subtitle_loaded = threading.Event()
+            self.set_position(0)
             self.mediaPlayer.pause()
 
             def run_app():
@@ -326,6 +368,8 @@ class YTVideoPlayer(QWidget):
         # Currently not working
         elif event.key() == Qt.Key_U:
              self.playlist.shuffle()
+        elif event.key() == Qt.Key_R:
+             self.set_position(0)
         elif event.key() == Qt.Key_Right:
             new_position = self.get_position() + 5000
             if new_position <= self.mediaPlayer.duration():
@@ -339,6 +383,42 @@ class YTVideoPlayer(QWidget):
                 self.mediaPlayer.pause()
             else:
                 self.mediaPlayer.play()
+        elif event.key() == Qt.Key_1:
+            video_length = self.mediaPlayer.duration()
+            new_position = video_length * 0.1
+            self.set_position(int(round(new_position)))
+        elif event.key() == Qt.Key_2:
+            video_length = self.mediaPlayer.duration()
+            new_position = video_length * 0.2
+            self.set_position(int(round(new_position)))
+        elif event.key() == Qt.Key_3:
+            video_length = self.mediaPlayer.duration()
+            new_position = video_length * 0.3
+            self.set_position(int(round(new_position)))
+        elif event.key() == Qt.Key_4:
+            video_length = self.mediaPlayer.duration()
+            new_position = video_length * 0.4
+            self.set_position(int(round(new_position)))
+        elif event.key() == Qt.Key_5:
+            video_length = self.mediaPlayer.duration()
+            new_position = video_length * 0.5
+            self.set_position(int(round(new_position)))
+        elif event.key() == Qt.Key_6:
+            video_length = self.mediaPlayer.duration()
+            new_position = video_length * 0.6
+            self.set_position(int(round(new_position)))
+        elif event.key() == Qt.Key_7:
+            video_length = self.mediaPlayer.duration()
+            new_position = video_length * 0.7
+            self.set_position(int(round(new_position)))
+        elif event.key() == Qt.Key_8:
+            video_length = self.mediaPlayer.duration()
+            new_position = video_length * 0.8
+            self.set_position(int(round(new_position)))
+        elif event.key() == Qt.Key_9:
+            video_length = self.mediaPlayer.duration()
+            new_position = video_length * 0.9
+            self.set_position(int(round(new_position)))
 
 
     def subtitle_reader(self, choice):
@@ -419,7 +499,11 @@ class YTVideoPlayer(QWidget):
         def parse_time(time_str):
             h, m, s = map(float, time_str.split(':'))
             return timedelta(hours=h, minutes=m, seconds=s).total_seconds() * 1000
+#    def get_position(self):
+#        return self.mediaPlayer.position()
 
+#    def set_position(self, position):
+#        self.mediaPlayer.setPosition(position)
         def display_next_subtitle():
             if subtitles:
                 time, text = subtitles.pop(0)
