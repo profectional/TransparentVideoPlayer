@@ -1,8 +1,8 @@
 @echo off
 setlocal
 
-set PYTHON_VERSION=3.12.4
-set PYTHON_INSTALLER_URL=https://www.python.org/ftp/python/%PYTHON_VERSION%/python-%PYTHON_VERSION%-amd64.exe
+:: Define the URL to the Python installer
+set "url=https://www.python.org/ftp/python/3.12.4/python-3.12.4-amd64.exe"
 
 :: Define the path to the installer
 set "installer=%TEMP%\python-installer.exe"
