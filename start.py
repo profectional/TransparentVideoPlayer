@@ -9,6 +9,7 @@ from moviepy.editor import VideoFileClip
 from urllib.parse import unquote, urlparse
 import re
 import subprocess
+import yt_dlp
 from yt_dlp import YoutubeDL
 import tkinter as tk
 from datetime import timedelta
@@ -89,26 +90,35 @@ class VideoPlayer(QWidget):
         self.playlist.setPlaybackMode(QMediaPlaylist.Loop)
 
         # Get the directory of the current file.
-        static_directory = os.path.dirname(os.path.realpath(__file__))
+        current_directory = os.path.dirname(os.path.realpath(__file__))
+        def add_files_to_playlist(directory):
+            file_toltal = 0
+            for root, dirs, files in os.walk(directory):
+                for file in files:
+                    if file.endswith(".mp4") or file.endswith(".webp"):
+                        full_path = os.path.join(root, file)
+                        file_toltal += 1
+                        print(f"Adding No.{file_toltal}: ( {full_path} ) to playlist")
+                        url = QUrl.fromLocalFile(full_path)
+                        self.playlist.addMedia(QMediaContent(url))
+
+        # Get the directory of the current file.
+        current_directory = os.path.dirname(os.path.realpath(__file__))
 
         root = tk.Tk()
         root.withdraw()
 
         settings = QSettings("anon", "transparent_video_player")
-        directory = settings.value("directory")
-        if directory is None:
-            directory = sd.askstring("Input", "Enter the directory for your music ex: C:/Users/username/Music:")
-            settings.setValue("directory", directory)
-        file_toltal = 0
-        # Find all .mp4 files in the system and add them to the playlist.
-        for root, dirs, files in os.walk(directory):
-            for file in files:
-                if file.endswith(".mp4") or file.endswith(".webp"):
-                    full_path = os.path.join(root, file)
-                    file_toltal += 1
-                    print(f"Adding {file_toltal}{full_path} to playlist")
-                    url = QUrl.fromLocalFile(full_path)
-                    self.playlist.addMedia(QMediaContent(url))
+        target_directory = settings.value("directory")
+        if target_directory is None:
+            target_directory = sd.askstring("Input", "Enter the directory for your music ex: C:/Users/username/Music:")
+            settings.setValue("directory", target_directory)
+
+        # Add files from the current directory to the playlist.
+        add_files_to_playlist(current_directory)
+
+        # Add files from the targeted directory to the playlist.
+        add_files_to_playlist(target_directory)
 
         print("Press r to replay the video, s to skip to the next video, p to go to the previous video, up to increase the window opacity, down to decrease the window opacity, w to increase the volume, e to decrease the volume, u to shuffle, and space to pause/play the video")
 
@@ -278,6 +288,7 @@ class YTVideoPlayer(QWidget):
         self.settings = QSettings("YourOrganization", "YourApplication")
         self.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface)
         self.videoWidget = QVideoWidget()
+        self.page_url = video_url  # YouTube page URL
         # Create a playlist
         self.playlist = QMediaPlaylist()
         self.playlist.setPlaybackMode(QMediaPlaylist.Loop)
@@ -289,7 +300,7 @@ class YTVideoPlayer(QWidget):
             video_url = info_dict.get('url', None)
             self.playlist.addMedia(QMediaContent(QUrl(video_url)))
 
-        print("Press r to replay the video, s to skip to the next video, p to go to the previous video, up_arrow/down to increase/decrease the window opacity, z/x to lower/incr volume, w to make a new clone file then increase the volume PERMARNETLY for that file, and space to pause/play the video")
+        print("Press d to download the video, r to replay the video, s to skip to the next video, p to go to the previous video, up_arrow/down to increase/decrease the window opacity, z/x to lower/incr volume, w to make a new clone file then increase the volume PERMARNETLY for that file, and space to pause/play the video")
         # Set the playlist for the media player
         self.mediaPlayer.setPlaylist(self.playlist)
 
@@ -354,6 +365,16 @@ class YTVideoPlayer(QWidget):
             volume += 10
             self.mediaPlayer.setVolume(min(volume, 100))
             self.settings.setValue("volume", volume)
+
+        elif event.key() == Qt.Key_D:
+            def download():
+                print(f"Downloading video: {self.page_url}")
+                ydl_opts = {
+                    'quiet': False
+                }
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([self.page_url])
+            threading.Thread(target=download, daemon=False).start()
 
         elif event.key() == Qt.Key_S:
             self.playlist.next()
