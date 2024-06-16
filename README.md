@@ -1,5 +1,5 @@
 # Instalation
-if you dont have python run python_auto_setup.bat or https://www.python.org/
+if you dont have python run python_auto_setup.bat or https://www.python.org/ ;
 run setup.py after python_auto_setup.bat closed by double clicking it or open the terminal/cmd by right clicking the folder and type:
 ```
 python setup.py
