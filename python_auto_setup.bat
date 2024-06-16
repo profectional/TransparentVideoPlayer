@@ -16,5 +16,4 @@ start /wait "" "%installer%" /quiet InstallAllUsers=1 PrependPath=1 Include_test
 :: Delete the installer
 del "%installer%"
 
-pause
 endlocal
