@@ -15,8 +15,10 @@ or:
 pip install PyQt5
 pip install moviepy
 
-Running the Program
-To run the program, open a terminal in the directory/folder containing the start.py file and run the following command:
+install K-litekodec.exe
+
+Running the Program:
+To run the program double click it after all instalations or open a terminal in the directory/folder containing the start.py file and run the following command:
 
 python start.py
 
