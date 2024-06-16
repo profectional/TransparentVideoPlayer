@@ -1,17 +1,17 @@
 # Instalation
-
-Uruchom setup.py z Pythonem, aby zainstalować wszystko:
+if you dont have python run python_auto_setup.bat or https://www.python.org/
+use setup.py after python_auto_setup.bat closed:
 ```
 pip install setup.py
 ```
-zainstaluj K-litekodec.exe, jeśli jesteś w Window:
+next install K-litekodec.exe, if you are on Window:
 
 
-jeśli używasz Linuksa, musisz zainstalować własne kodeki
+Not currently supporting Linux and MacOS, its possible
 
 # Start
-
-uruchom program:
+run python.py
+or open the terminal/cmd by right click in the folder and type:
 ```
 python start.py
 ```
