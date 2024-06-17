@@ -13,7 +13,6 @@ This application requires Python and K-Lite Codec Pack to function properly. If 
 Please note that Linux and MacOS are not currently supported, but support for these platforms may be added in the future.
 
 # Usage
-To edit opacity, download and etc. read the console message for hotkeys, alt tab to navigate on it then apply your inputs</br>
 
 To start the application, run `start.py` or open the terminal/command prompt, navigate to the application's directory, and type:
 
