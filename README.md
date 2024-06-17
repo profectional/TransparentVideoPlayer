@@ -15,6 +15,6 @@ Please note that Linux and MacOS are not currently supported, but support for th
 # Usage
 
 To start the application, run `start.py` or open the terminal/command prompt, navigate to the application's directory, and type:
-
+To edit opacity, download and etc. read the console message for hotkeys, alt tab to navigate on it then apply your inputs
 ```bash
 python start.py
