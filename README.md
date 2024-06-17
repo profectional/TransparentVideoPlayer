@@ -19,7 +19,7 @@ To start the application, run `start.py` or open the terminal/command prompt, na
 
 ```bash
 python start.py
-
+```
 # HotKeys
 
 To edit opacity, download and etc. read the console message for hotkeys, alt tab to navigate on it then apply your inputs</br>
