@@ -1,5 +1,5 @@
 # Instalation
-if you dont have python/K-litekodec run setup.bat(when warning pops up just click more option and run) and type y or get it from https://www.python.org/ <br />
+if you dont have python/K-litekodec run setup.bat(when warning pops up just click more option and run it) and type y in the terminal (n if you already have it) or get it from https://www.python.org/ <br />
 
 if you dont trust the .bat then install K-litekodec.exe in TransparentVideoPlayer/module ( you can also install this here https://codecguide.com/download_kl.htm if you dont trust setup.bat Or the .exe (very sus ik) )
 
