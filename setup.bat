@@ -32,6 +32,6 @@ echo Installing modules...
 python "%module_setup_path%"
 
 :: Run main.py
-python "%script_dir%main.py"
+python "%script_dir%start.py"
 
 endlocal
