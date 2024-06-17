@@ -1,25 +1,35 @@
-import os
-import sys
+import requests
 import subprocess
+import os
+import platform
+import time
+# Target Python version to install
+target_version = (3, 12, 4)
 
-def install_packages():
-    packages = [
-        'PyQt5',
-        'moviepy',
-        'yt-dlp'
-    ]
-    subprocess.check_call([sys.executable, '-m', 'pip', 'install', *packages])
+# Get the current Python version
+current_version = platform.python_version_tuple()
+current_version = tuple(map(int, current_version))
+STRversion_download = '3.12.4'
+# Only download and install if the current version is older than the target version
+if current_version < target_version:
+    url = f"https://www.python.org/ftp/python/{STRversion_download}/python-{STRversion_download}-amd64.exe"
+    response = requests.get(url)
 
-def setup_completed():
-    return os.path.exists('setup_completed.txt')
+    with open("python_installer.exe", "wb") as file:
+        file.write(response.content)
 
-if __name__ == '__main__':
-    if not setup_completed():
-        print("Installing dependencies for the first time...")
-        install_packages()
-        print("Dependencies installed successfully!")
-        # Create a file to indicate that setup has been completed
-        with open('setup_completed.txt', 'w') as f:
-            f.write('Setup completed')
-    else:
-        print("Setup has already been completed previously.")
+    subprocess.run(["python_installer.exe", "/quiet", "InstallAllUsers=1", "PrependPath=1"])
+    os.remove("python_installer.exe")
+else:
+    print(f"Python {current_version[0]}.{current_version[1]}.{current_version[2]} or newer is already installed.")
+
+time.sleep(5)
+
+# Get the directory of the current script
+script_dir = os.path.dirname(os.path.realpath(__file__))
+
+# Construct the absolute path to module_setup.py
+module_setup_path = os.path.join(script_dir, "module", "module_setup.py")
+
+# Run module_setup.py
+subprocess.run(["python", module_setup_path])
