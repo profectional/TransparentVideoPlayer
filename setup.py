@@ -18,7 +18,7 @@ if current_version < target_version:
     with open("python_installer.exe", "wb") as file:
         file.write(response.content)
 
-    subprocess.run(["python_installer.exe", "/quiet", "InstallAllUsers=1", "PrependPath=1"])
+    subprocess.run(["python_installer.exe", "/quiet", "PrependPath=1"])
     os.remove("python_installer.exe")
 else:
     print(f"Python {current_version[0]}.{current_version[1]}.{current_version[2]} or newer is already installed.")
@@ -32,4 +32,12 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 module_setup_path = os.path.join(script_dir, "module", "module_setup.py")
 
 # Run module_setup.py
+print("Installing modules...")
 subprocess.run(["python", module_setup_path])
+
+# Construct the absolute path to K-Lite_Codec_Pack_1810_Basic.exe
+codec_pack_path = os.path.join(script_dir, "module", "K-Lite_Codec_Pack_1810_Basic.exe")
+
+# Install K-Lite_Codec_Pack_1810_Basic.exe
+print("Installing K-Lite Codec Pack...")
+subprocess.run([codec_pack_path, "/quiet"])
