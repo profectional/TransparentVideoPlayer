@@ -23,3 +23,13 @@ if not setup_completed():
         f.write('Setup completed')
 else:
     print("Setup has already been completed previously.")
+
+# Get the directory of the current script
+script_dir = os.path.dirname(os.path.realpath(__file__))
+
+# Construct the absolute path to K-Lite_Codec_Pack_1810_Basic.exe
+codec_pack_path = os.path.join(script_dir, "K-Lite_Codec_Pack_1810_Basic.exe")
+
+# Install K-Lite_Codec_Pack_1810_Basic.exe
+print("Installing K-Lite Codec Pack...")
+subprocess.run([codec_pack_path, "/quiet"])
