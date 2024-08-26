@@ -10,7 +10,7 @@ This application requires Python and K-Lite Codec Pack to function properly. If 
 
 3. If you have chosen to manually install the prerequisites above, navigate to the `TransparentVideoPlayer/module` directory and run `module_setup.py`.
 
-Please note that Linux and MacOS are not currently supported, but support for these platforms may be added in the future.
+Windows only
 
 # Usage
 
