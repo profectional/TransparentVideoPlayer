@@ -3,7 +3,7 @@ import os
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer, QMediaPlaylist
 from PyQt5.QtMultimediaWidgets import QVideoWidget
-from PyQt5.QtCore import QUrl, Qt, QSettings
+from PyQt5.QtCore import QUrl, Qt, QSettings, pyqtSignal
 from PyQt5.QtGui import QKeySequence
 from moviepy.editor import VideoFileClip
 from urllib.parse import unquote, urlparse
@@ -291,14 +291,27 @@ class YTVideoPlayer(QWidget):
         self.page_url = video_url  # YouTube page URL
         # Create a playlist
         self.playlist = QMediaPlaylist()
+        self.YTplaylist = []
         self.playlist.setPlaybackMode(QMediaPlaylist.Loop)
 
-        # Add the YouTube video to the playlist
-        ydl_opts = {'format': 'best'}
-        with YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(video_url, download=False)
-            video_url = info_dict.get('url', None)
-            self.playlist.addMedia(QMediaContent(QUrl(video_url)))
+        ydl_opts = {
+            'format': 'best',  # Updated format syntax
+        }
+
+        self.index_of_list = video_url.find("list")
+        if self.index_of_list != -1:
+            with YoutubeDL(ydl_opts) as ydl:
+                info_dict = ydl.extract_info(video_url, download=False)
+                entries = info_dict.get('entries', [])
+                for entry in entries:
+                    video_url = entry.get('url', None)
+                    if video_url:
+                        self.playlist.addMedia(QMediaContent(QUrl(video_url)))
+        else:
+            with YoutubeDL(ydl_opts) as ydl:
+                info_dict = ydl.extract_info(video_url, download=False)
+                video_url = info_dict.get('url', None)
+                self.playlist.addMedia(QMediaContent(QUrl(video_url)))
 
         print("Press d to download the video, r to replay the video, s to skip to the next video, p to go to the previous video, up_arrow/down to increase/decrease the window opacity, z/x to lower/incr volume, w to make a new clone file then increase the volume PERMARNETLY for that file, and space to pause/play the video")
         # Set the playlist for the media player
@@ -335,11 +348,6 @@ class YTVideoPlayer(QWidget):
             pid = os.getpid()
             os.kill(pid, 9)
             QApplication.quit()
-        elif event.key() == Qt.Key_T:
-            with open("YTplaylist.txt", "w", encoding="utf-8") as f:
-                link = self.playlist.currentMedia().canonicalUrl().toString()
-                f.write(f"{link}\n")
-                print(f.read())
         elif event.key() == Qt.Key_C:
             self.subtitle_loaded = threading.Event()
             self.set_position(0)
@@ -365,8 +373,8 @@ class YTVideoPlayer(QWidget):
             volume += 10
             self.mediaPlayer.setVolume(min(volume, 100))
             self.settings.setValue("volume", volume)
-
-        elif event.key() == Qt.Key_D:
+            
+        elif event.key() == Qt.Key_D: # download the video
             def download():
                 print(f"Downloading video: {self.page_url}")
                 ydl_opts = {
